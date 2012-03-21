@@ -1,9 +1,11 @@
 MKV audio repacker
 ------------
 
-CLI script to repack external audio-track into mkv container.
+CLI script to repack external audio-track into mkv container for every video files in directory.
 
 I write it for myself, to have more comfort with some anime.
+
+By default script create new directory, "*repacked*", you can change name with options *-o*
 
 ### How to use ###
 
@@ -21,3 +23,7 @@ I write it for myself, to have more comfort with some anime.
 ### Example ###
 
 	audio_repacker.rb ./sound_dir/
+
+### Limitation ##
+
+You **MUST** have some number of video and audiofiles, or script return error.
