@@ -2,7 +2,7 @@
 # encoding: UTF-8
 BEGIN {$VERBOSE = true}
 
-VERSION = '0.4.1'
+VERSION = '0.4.3'
 
 require 'optparse'
 require 'ostruct'
@@ -31,6 +31,7 @@ class OptparseRepacker
     options.video = DEFAULT_VIDEO_DIR_NAME
     options.audio = nil
     options.output = DEFAULT_OUTPUT_DIR_NAME
+    options.keep_audio = false
 
     opts_obj = OptionParser.new do |opts|
       opts.banner = "Usage: audio_repacker.rb [OPTIONS] AUDIO_DIR"
@@ -40,7 +41,7 @@ class OptparseRepacker
 
       # String argument.
       opts.on("-v", "--video [VIDEO_DIR]",
-              "Select directory where", " video files will be coded") do |video|
+              "Select directory where video files will be coded") do |video|
         options.video = video
       end
 
@@ -48,6 +49,11 @@ class OptparseRepacker
       opts.on("-o", "--output [OUTPUT_DIR]",
               "Select output directory") do |output|
         options.output = output
+      end
+
+      # Boolean switch.
+      opts.on("--keep_audio", "Do not wipe out audio tracks from source container") do |keep_audio|
+        options.keep_audio = keep_audio
       end
 
       opts.separator ""
@@ -84,8 +90,8 @@ end  # class OptparseRepacker
 
 class RepackerInitialazer
  
-  VIDEO_FILES_EXTENTION = 'mkv' # only 'mkv' files agreed
-  AUDIO_FILES_EXTENTION = '*' # any audiofiles agreed
+  VIDEO_FILES_EXTENTION = 'mkv' # only 'mkv' files allowed
+  AUDIO_FILES_EXTENTION = '*' # any audiofiles allowed
   #
   # Return a hash of video_files => audio_files to proceed.
   #
@@ -173,10 +179,18 @@ pairs_to_proceed = prepared_pairs.delete_if do |key, value|
   end # if 
 end #prepared_pairs.delete_if do 
 
+# key for removing audio rack from source, 'false' -> remove
+audio_key = options.keep_audio ? '' : '-A'
+
 # proceed repacking
 pairs_to_proceed.each_pair do |key, value|
-  exec_str = %Q[mkvmerge -A -o #{Shellwords.escape File.join(outputdir, key )} #{Shellwords.escape File.join(videodir, key )} #{Shellwords.escape File.join(audiodir, value )}]
-  # pp "#{key} -> #{value}"
+  exec_str = sprintf %Q[mkvmerge -o %s %s %s %s],
+    Shellwords.escape( File.join(outputdir, key )),
+    audio_key,
+    Shellwords.escape( File.join(videodir, key )),
+    Shellwords.escape( File.join(audiodir, value ))
+  
+  # puts exec_str
   system exec_str
   
 end # prepared_pairs.each_pair do
